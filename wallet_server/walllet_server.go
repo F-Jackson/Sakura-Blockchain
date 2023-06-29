@@ -1,6 +1,9 @@
 package main
 
 import (
+	"encoding/json"
+	"io"
+	"kyoku-blockchain/wallet"
 	"log"
 	"net/http"
 	"path"
@@ -37,7 +40,31 @@ func (ws *WalletServer) Index(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func (ws *WalletServer) Wallet(w http.ResponseWriter, req *http.Request) {
+	switch req.Method {
+	case http.MethodPost:
+		decoder := json.NewDecoder(req.Body)
+		var t wallet.TransactionRequest
+		err := decoder.Decode(&t)
+		if err != nil {
+			log.Printf("Error %v", err)
+			io.WriteString(w, "ERROR")
+			return
+		}
+		if !t.Validate() {
+			log.Println("Error missing fields")
+			io.WriteString(w, "ERROR")
+			return
+		}
+
+	default:
+		w.WriteHeader(http.StatusBadRequest)
+		log.Println("Error invalid http method")
+	}
+}
+
 func (ws *WalletServer) Run() {
 	http.HandleFunc("/", ws.Index)
+	http.HandleFunc("/wallet", ws.Wallet)
 	log.Fatal(http.ListenAndServe("0.0.0.0"+strconv.Itoa(int(ws.Port())), nil))
 }
