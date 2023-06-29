@@ -1,9 +1,12 @@
 package block
 
 import (
+	"crypto/ecdsa"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"kyoku-blockchain/utils"
+	"log"
 	"strings"
 	"time"
 )
@@ -82,9 +85,37 @@ func (bc *BlockChain) LastBlock() *Block {
 func (bc *BlockChain) AddTransaction(
 	sender string,
 	recipient string,
-	value float32) {
+	value float32,
+	senderPublicKey *ecdsa.PublicKey,
+	s *utils.Signature) bool {
 	t := NewTransaction(sender, recipient, value)
-	bc.transactionPool = append(bc.transactionPool, t)
+
+	if sender == MINING_SENDER {
+		bc.transactionPool = append(bc.transactionPool, t)
+		return true
+	}
+
+	if bc.VerifyTrasactionSignature(senderPublicKey, s, t) {
+		// if bc.CalculateTotalAmount(sender) < value {
+		// 	log.Println("Error: value less")
+		// 	return false
+		// }
+
+		bc.transactionPool = append(bc.transactionPool, t)
+		return true
+	} else {
+		log.Println("Error: verify ts")
+	}
+	return false
+}
+
+func (bc *BlockChain) VerifyTrasactionSignature(
+	senderPublicKey *ecdsa.PublicKey,
+	s *utils.Signature,
+	t *Transaction) bool {
+	m, _ := json.Marshal(t)
+	h := sha256.Sum256([]byte(m))
+	return ecdsa.Verify(senderPublicKey, h[:], s.R, s.S)
 }
 
 func (bc *BlockChain) CopyTransactionPool() []*Transaction {
@@ -122,7 +153,7 @@ func (bc *BlockChain) ProofOfWork() int {
 }
 
 func (bc *BlockChain) Mining() bool {
-	bc.AddTransaction(MINING_SENDER, bc.blockChainAddress, MINING_REWARD)
+	bc.AddTransaction(MINING_SENDER, bc.blockChainAddress, MINING_REWARD, nil, nil)
 	nonce := bc.ProofOfWork()
 	previousHash := bc.LastBlock().Hash()
 	bc.CreateBlock(nonce, previousHash)
@@ -172,4 +203,3 @@ func (t *Transaction) MarshalJSON() ([]byte, error) {
 		Value:                      t.value,
 	})
 }
-
