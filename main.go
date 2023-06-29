@@ -92,7 +92,7 @@ func (bc *BlockChain) CopyTransactionPool() []*Transaction {
 	for _, t := range bc.transactionPool {
 		transactions = append(transactions,
 			NewTransaction(
-				t.sendBlockChainAdress,
+				t.senderBlockChainAdress,
 				t.recipientBlockChainAddress,
 				t.value))
 	}
@@ -129,8 +129,27 @@ func (bc *BlockChain) Mining() bool {
 	return true
 }
 
+func (bc *BlockChain) CalculateTotalAmount(blockChainAddress string) float32 {
+	var totalAmount float32 = 0.0
+
+	for _, b := range bc.chain {
+		for _, t := range b.transactions {
+			value := t.value
+
+			if blockChainAddress == t.recipientBlockChainAddress {
+				totalAmount += value
+			}
+
+			if blockChainAddress == t.senderBlockChainAdress {
+				totalAmount -= value
+			}
+		}
+	}
+	return totalAmount
+}
+
 type Transaction struct {
-	sendBlockChainAdress       string
+	senderBlockChainAdress     string
 	recipientBlockChainAddress string
 	value                      float32
 }
@@ -144,11 +163,11 @@ func NewTransaction(
 
 func (t *Transaction) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
-		SendBlockChainAdress       string  `json:"send_blockchain_adress"`
+		SenderBlockChainAdress     string  `json:"send_blockchain_adress"`
 		RecipientBlockChainAddress string  `json:"recipient_blockchain_address"`
 		Value                      float32 `json:"value"`
 	}{
-		SendBlockChainAdress:       t.sendBlockChainAdress,
+		SenderBlockChainAdress:     t.senderBlockChainAdress,
 		RecipientBlockChainAddress: t.recipientBlockChainAddress,
 		Value:                      t.value,
 	})
