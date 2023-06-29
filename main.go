@@ -1,16 +1,18 @@
 package main
 
 import (
-	"fmt"
-	"kyoku-blockchain/wallet"
+	"flag"
+	"kyoku-blockchain/blockchain_server"
+	"log"
 )
 
-func main() {
-	w := wallet.NewWallet()
-	fmt.Println(w.PrivateKeyStr())
-	fmt.Println(w.PublicKeyStr())
-	fmt.Println(w.BlockChainAddress())
+func init() {
+	log.SetPrefix("Blockchain: ")
+}
 
-	t := wallet.NewTransaction(w.PrivateKey(), w.PublicKey(), w.BlockChainAddress(), "B", 1.0)
-	fmt.Printf("signature %s\n", t.GenerateSignature())
+func main() {
+	port := flag.Uint("port", 5000, "TCP Port Number for Blockchain Server")
+	flag.Parse()
+	app := blockchain_server.NewBlockChainServer(uint16(*port))
+	app.Run()
 }
