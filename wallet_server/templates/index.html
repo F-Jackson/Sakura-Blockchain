@@ -4,8 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
 </head>
 <body>
-    Hello world
+    <div>
+        <h1>Wallet</h1>
+        <div id="wallet_amout">0</div>
+        <button id="reload_wallet">Reload Wallet</button>
+
+        <p>Public key</p>
+        <textarea id="public_key" rows="2" cols="100"></textarea>
+
+        <p>Private key</p>
+        <textarea id="private_key" rows="1" cols="100"></textarea>
+
+        <p>Blockchain Address</p>
+        <textarea id="blockchain_address" rows="2" cols="100"></textarea>
+    </div>
+
+    <div>
+        <h1>end Money</h1>
+        <div>
+            Address: <input id="recipient_blockchain_address" size="100" type="text">
+            <br>
+            Amount: <input id="send_amount" type="text">
+            <br>
+            <button id="send_money_button">Send</button>
+        </div>
+    </div>
 </body>
 </html>
